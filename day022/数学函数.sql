@@ -1,0 +1,18 @@
+#数学函数
+
+# 四舍五入
+SELECT ROUND(1.55);
+SELECT ROUND(1.55, 1);
+
+# 向上取整
+SELECT CEIL(1.01);
+
+# 向下取整
+SELECT FLOOR(1.01);
+
+# 截断
+SELECT TRUNCATE(1.69999, 1); // 1.6
+
+# 取模
+SELECT MOD(10, 3);//1
+SELECT 10%3;
