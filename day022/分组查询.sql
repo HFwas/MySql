@@ -35,114 +35,128 @@ where——group by ——having
 
 #1）简单的分组
 #案例1：查询每个工种的员工平均工资
+SELECT AVG(salary),`job_id` FROM employees GROUP BY `job_id`; 
 
-SELECT AVG(salary),job_id
-FROM employees
-GROUP BY job_id;
+#查询每个位置上的部门个数
+SELECT COUNT(`department_id`),`location_id` FROM departments GROUP BY `location_id`;
 
-#案例2：查询每个领导的手下人数
+#添加筛选条件
+#案例一：查询邮箱中包含a字符的，每个部门的平均工资
+SELECT 
+  AVG(salary),
+  `department_id` 
+FROM
+  employees 
+WHERE email LIKE '%a%' 
+GROUP BY `department_id` ;
 
-SELECT COUNT(*),manager_id
-FROM employees
-WHERE manager_id IS NOT NULL
-GROUP BY manager_id;
+#案例二：查询有奖金的每个领导手下员工的最高工资
+SELECT 
+  MAX(salary),
+  `manager_id` 
+FROM
+  employees 
+WHERE `commission_pct` IS NOT NULL 
+GROUP BY `manager_id` ;
 
-#2）可以实现分组前的筛选
-#案例1：查询邮箱中包含a字符的 每个部门的最高工资
-SELECT MAX(salary) 最高工资,department_id
-FROM employees
-WHERE email LIKE '%a%'
-GROUP BY department_id;
+#添加分组后的筛选条件
 
+#案例一：查询那个部门员工个数>2
 
-#案例2：查询每个领导手下有奖金的员工的平均工资
-SELECT AVG(salary) 平均工资,manager_id
-FROM employees
-WHERE commission_pct IS NOT NULL
-GROUP BY manager_id;
+#先查询每个部门的员工个数
+SELECT COUNT(*),`department_id` FROM employees GROUP BY `department_id`;
 
+#根据上述查询的结果进行筛选，查询哪个部门的员工个数>2
+SELECT 
+  COUNT(*),
+  `department_id` 
+FROM
+  employees 
+GROUP BY `department_id` 
+HAVING COUNT(*) > 2 ;
 
-#3）可以实现分组后的筛选
-#案例1：查询哪个部门的员工个数>5
-#分析1：查询每个部门的员工个数
-SELECT COUNT(*) 员工个数,department_id
-FROM employees
-GROUP BY department_id
+#案例二:查询每个工种有奖金的员工的最高工资>12000的工种编号和最高工资
+#第一步：查询每个工种有奖金的员工的最高工资
+SELECT 
+  MAX(salary),
+  `job_id` 
+FROM
+  employees 
+WHERE `commission_pct` IS NOT NULL 
+GROUP BY `job_id` ;
 
-#分析2：在刚才的结果基础上，筛选哪个部门的员工个数>5
+#第二步：根据第一步的结果继续筛选，最高工资是否大于12000，
+SELECT 
+  MAX(salary),
+  `job_id` 
+FROM
+  employees 
+WHERE `commission_pct` IS NOT NULL 
+GROUP BY `job_id` 
+HAVING MAX(salary) > 12000;
 
-SELECT COUNT(*) 员工个数,department_id
-FROM employees
+#案例三：查询领导编号>102的每个领导手下的最低工资>5000的领导编号是哪个，以及最低工资
+#第一步：查询领导编号>102的每个领导手下的员工固定最低工资
+SELECT 
+  MIN(salary),
+  `manager_id` 
+FROM
+  employees 
+WHERE `manager_id` > 102 
+GROUP BY `manager_id` ;
 
-GROUP BY department_id
-HAVING  COUNT(*)>5;
-
-
-#案例2：每个工种有奖金的员工的最高工资>12000的工种编号和最高工资
-
-SELECT job_id,MAX(salary)
-FROM employees
-WHERE commission_pct  IS NOT NULL
-GROUP BY job_id
-HAVING MAX(salary)>12000;
-
-
-#案例3：领导编号>102的    每个领导手下的最低工资大于5000的最低工资
-#分析1：查询每个领导手下员工的最低工资
-SELECT MIN(salary) 最低工资,manager_id
-FROM employees
-GROUP BY manager_id;
-
-#分析2：筛选刚才1的结果
-SELECT MIN(salary) 最低工资,manager_id
-FROM employees
-WHERE manager_id>102
-GROUP BY manager_id
-HAVING MIN(salary)>5000 ;
-
-
-
-
-#4）可以实现排序
-#案例：查询没有奖金的员工的最高工资>6000的工种编号和最高工资,按最高工资升序
-#分析1：按工种分组，查询每个工种有奖金的员工的最高工资
-SELECT MAX(salary) 最高工资,job_id
-FROM employees
-WHERE commission_pct IS  NULL
-GROUP BY job_id
-
-
-#分析2：筛选刚才的结果，看哪个最高工资>6000
-SELECT MAX(salary) 最高工资,job_id
-FROM employees
-WHERE commission_pct IS  NULL
-GROUP BY job_id
-HAVING MAX(salary)>6000
+#第二步：添加筛选条件：最低工资大于5000
+SELECT 
+  MIN(salary),
+  `manager_id` 
+FROM
+  employees 
+WHERE `manager_id` > 102 
+GROUP BY `manager_id` 
+HAVING MIN(salary) > 5000 ;
 
 
-#分析3：按最高工资升序
-SELECT MAX(salary) 最高工资,job_id
-FROM employees
-WHERE commission_pct IS  NULL
-GROUP BY job_id
-HAVING MAX(salary)>6000
-ORDER BY MAX(salary) ASC;
+#按表达式或者函数分组
+#案例：按员工姓名的长度分组，查询每一组的员工个数，筛选员工个数>5的有那些
+#第一步：查询每个长度的员工个数
+SELECT 
+  LENGTH(last_name),
+  COUNT(*) 
+FROM
+  employees 
+GROUP BY LENGTH(last_name) ;
 
+#第二步：添加筛选条件
+SELECT 
+  LENGTH(last_name),
+  COUNT(*) 
+FROM
+  employees 
+GROUP BY LENGTH(last_name) 
+HAVING COUNT(*)>5;
 
-#5）按多个字段分组
-#案例：查询每个工种每个部门的最低工资,并按最低工资降序
-#提示：工种和部门都一样，才是一组
+#按多个字段进行分组
+#查询每个部门，每个工种之间的员工的平均工资
+SELECT 
+  AVG(salary),
+  `department_id`,
+  `job_id` 
+FROM
+  employees 
+GROUP BY `department_id`,
+  `job_id` ;
 
-工种	部门  工资
-1	10	10000
-1       20      2000
-2	20
-3       20
-1       10
-2       30
-2       20
+#添加排序
+#查询每个部门不为空，每个工种之间的员工的平均工资>10000,并且按平均工资的高低显示出来
+SELECT 
+  AVG(salary),
+  `department_id`,
+  `job_id` 
+FROM
+  employees 
+WHERE `department_id` IS NOT NULL 
+GROUP BY `department_id`,
+  `job_id` 
+HAVING AVG(salary) > 10000 
+ORDER BY AVG(salary) DESC ;
 
-
-SELECT MIN(salary) 最低工资,job_id,department_id
-FROM employees
-GROUP BY job_id,department_id;
