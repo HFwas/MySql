@@ -83,10 +83,7 @@ public class CustomerForQuery {
 			JDBCUtils.closeResource(conn, ps, rs);
 			
 		}
-		
 		return null;
-		
-		
 	}
 	
 	
@@ -117,9 +114,9 @@ public class CustomerForQuery {
 				
 			//方式二：
 //			Object[] data = new Object[]{id,name,email,birth};
-				//方式三：将数据封装为一个对象（推荐）
-				Customer customer = new Customer(id, name, email, birth);
-				System.out.println(customer);
+			//方式三：将数据封装为一个对象（推荐）
+			Customer customer = new Customer(id, name, email, birth);
+			System.out.println(customer);
 				
 			}
 		} catch (Exception e) {
